@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css?family=Ubuntu+Mono" rel="stylesheet" type="text/css">
+  <title>Getting Started With ES6 Modules</title>
+  <link rel="stylesheet" href="vendor/reveal.js/css/reveal.css">
+  <link rel="stylesheet" href="vendor/reveal.js/css/theme/solarized.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/styles/zenburn.min.css">
+  <style>
+    .reveal pre,
+    .reveal code {
+      border-radius: 7px;
+    }
+
+    .reveal pre code {
+      padding: 0.75rem;
+    }
+
+    .reveal code {
+      font-family: "Ubuntu Mono", monospace;
+    }
+
+    .reveal p code,
+    .reveal li code {
+      background-color: rgba(0,0,0,.05);
+      box-shadow: 0 0 0 1px rgba(0,0,0,.15);
+      padding: .2rem .5rem;
+      color: #cc93c1;
+      border-radius: 7px;
+    }
+  </style>
+</head>
+<body class="">
+  <div class="reveal">
+    <div class="slides">
+      <section>
+        <section data-markdown>
+          # Getting Started
+          ## With ES6 Modules
+
+          ```javascript
+          import { talk } from './aaron-petcoff';
+          // TODO: ^-- this is cheesy. remove this.
+          // @ughitsaaron on the twitters
+          // web developer at _new york_ magazine
+          // http://aaronpetcoff.me
+          ```
+
+          Note:
+            My talk today is on Getting Started with ES6 modules.
+
+            As the title suggests, this talk is geared toward helping people who are excited about this new feature in Javascript get going, but hopefully there’s something from this talk that everybody can be excited about.
+        </section>
+        <section data-markdown>
+          ```javascript
+          export { slides } from './aaron-petcoff';
+          // http://ughitsaaron.github.io/slides-manhattanjs-dec-2015
+          // http://aaronpetcoff.me/talks
+          ```
+        </section>
+        <section data-markdown>
+          # Why?
+          - 1999: ECMAScript 3
+          - 2009: ECMAScript 5 (ES4 was abandoned)
+          - June 2015: ECMAScript 2015
+          - Next year: ECMAScript 2016
+
+          Note:
+            Ten years passed between the publication of the ES3 specification and ES5. ES5 was published in 2009 and ES6/ES2015 was published just in June, introducing radical new features and concepts to the language including modules, immutable constants, block scoping, class syntax, generators, native promises, and so much more.
+
+            TC-39 wants to publish the specification for the next version of JavaScript later this year (making it ES2016), which might include class decorators, async/await, an exponents operator, and more.
+
+            Javascript is evolving rapidly. Often more than many developers can keep up with. Talks  that explore the reasoning, use, implications, and implementations of these new features are useful for helping developers at all levels consider how the language Javascript is changing, evolving, and growing.
+        </section>
+      </section>
+      <section>
+        <section data-markdown>
+          # Modules
+
+          - Organization
+          - Dependency management
+
+          Note:
+            The word “module” might be an overloaded term.
+
+            For instance, some could consider CSS or Sass files imported through the use of `import()` to be “modular” and they’re not wrong–but CSS `import` includes the whole stylesheet into the document as more or less could be accomplished through concatenation. (I believe this is also the way that `include` works in C?)
+
+            Doing this has benefit of allowing users to separate concerns, hiding code that isn’t immediately relevant, allowing for a greater degree of clarity and organization in a complex program.
+        </section>
+        <section data-markdown>
+          <script type="text/template">
+            No interface or namespacing
+
+            ```javascript
+            // tools.js
+            function map(arr) {
+              // ...
+            }
+
+            // index.html
+            var map = L.map('map') // conflicts with map from tools.js
+            ```
+            <!-- .element: class="fragment" data-fragment-index="1" -->
+
+            Note:
+
+            "But lacking an interface for interacting with the code being included can cause a lot of headaches for developers and teams."
+          </script>
+        </section>
+        <section data-markdown>
+          Languages like Python have a built in interface for modules.
+          ```python
+          # math.py
+          def fib(n):
+            # some Fibonacci function
+
+          def fib2(n):
+            # some other Fibonacci function
+
+          # main.py, only uses one function from math.py
+          from math import fib2
+          ```
+
+          Note:
+
+          Many languages, therefore, offer a built in syntax for managing modularity, to prevent conflicts like this.
+        </section>
+      </section>
+      <section>
+        <section data-markdown>
+          # Modules in Javascript
+
+          `import` and `export` have been reserved keywords in Javascript since 1997
+
+          Note:
+            The words import and export have been reserved keywords since the first ECMAScript specification in 1997.
+
+            But, until recently, JavaScript has never had a built in method for making or consuming modules.
+        </section>
+        <section data-markdown>
+          Once upon a time…
+          ```
+          &lt;a onclick=&quot;whatever('ok, cool')&quot;&gt;&lt;/a&gt;
+          ```
+
+          Note:
+            And in some ways, this made sense: for a long time, Javascript programs existed to handle small bits of interactivity.
+
+            Most Javascript programs existed on a single line, or within small `script` tags.
+        </section>
+        <section data-markdown>
+          ![Bill Clinton](email2.gif)
+        </section>
+        <section data-markdown>
+          But our applications are much more complex now.
+        </section>
+        <section data-markdown>
+          Libraries became more common.
+
+          Distributed across the global scope, e.g., `window.jQuery`
+
+          Note:
+            "But the web evolved. Javascript programs became more complex, creating greater needs for developers to reuse code or rely on libraries to handle complex tasks or manage conflicts between browsers."
+
+            "But sharing across the global scope is bad–it introduces the potential for valuable code to be overwritten if two global variables share the same name, not to mention it could potentially make secure data or functions available to the public."
+        </section>
+        <section data-markdown>
+          CommonJS &amp; AMD
+
+          ```
+          // commonjs
+          module.exports.foo = 'yahh';
+
+          // amd
+          define(['foo'], function () {
+            return 'yahh';
+          });
+          ```
+
+          Note:
+            Developers eventually created their own ways of handling modules, through things like CommonJS and AMD.
+
+            Node’s adoption of the CommonJS specification for modules meant a rapid proliferation of packages developed using this standard. But AMD has also been popular.
+
+            Each implementation has it’s own strengths &amp; weaknesses.
+
+            Unfortunately, these two standards are incompatible with each other.
+        </section>
+        <section>
+          <div style="display: table; width: 50%; margin: auto; transform: scale(2);">
+            <blockquote class="twitter-tweet" lang="en"><p lang="en" dir="ltr">Writing a JavaScript library in 2015: be sure to support browserify webpack rollup AMD UMD CJS globals ES6 modules npm bower jspm… [1/274]</p>&mdash; Nolan Lawson (@nolanlawson) <a href="https://twitter.com/nolanlawson/status/653610332989059072">October 12, 2015</a></blockquote>
+            <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+          </div>
+        </section>
+        <section data-markdown>
+          One, common standard (hopefully, 😬)
+
+          Note:
+            A common, built in standard gives us one common interface for handling the exporting and importing of Javascript modules.
+        </section>
+      </section>
+      <section>
+        <section data-markdown>
+          # ES2015 Module Basics
+          - No `modules` or `define` keywords
+          - Just `import` and `export`
+          - No need to `use strict`
+          - Multiple exports(!)
+
+          Note:
+            No more `modules` keyword. Instead, you simply `export`.
+
+            No need to ‘use strict’ -> all ES6 modules are in strict mode already.
+
+            Like with other common Javascript module systems, everything declared in a module remain local to the module unless they’re explicitly exported.
+        </section>
+        <section data-markdown>
+          Have to manually expose code.
+
+          ```javascript
+          // toppings.js
+          const combo = ['pineapple', 'feta'], // 😋
+                  favoriteCombo = combo; // won't be exported
+
+          export combo
+
+          // pizza.js
+          export class Pizza {
+            constructor(toppings) {
+              this.toppings = toppings;
+            }
+          }
+          ```
+
+          Can export `function`, `class`, `var`, `const`, and `let`.
+
+          Note:
+            To expose code from inside a module we have to export it.
+
+            We can name our exports with function, class, let, const, var.
+        </section>
+        <section data-markdown>
+          ```javascript
+          // index.js
+          import { combo } from './libs/toppings';
+          import { Pizza } from './libs/pizza';
+
+          let pizza = new Pizza(combo);
+          ```
+
+          Note:
+            Then we just have to import the exported code where we want it.
+        </section>
+        <section data-markdown>
+          You can `export` a list…
+
+          ```javascript
+          const plain = [],
+                pepperoni = ['pepperoni'],
+                combo1 = ['pineapple', 'feta'],
+                combo2 = ['pepperoni', 'sausage', 'people'];
+
+          export { plain,
+            pepperoni,
+            combo1,
+            combo2 }
+          ```
+        </section>
+        <section data-markdown>
+          …and rename your `export`s.
+
+          ```javascript
+          const plain = [],
+                pepperoni = ['pepperoni'],
+                combo1 = ['pineapple', 'feta'],
+                combo2 = ['pepperoni', 'sausage', 'people'];
+
+          export { plain,
+            pepperoni,
+            combo1 as pineappleAndFeta,
+            combo2 as meatLovers }
+          ```
+
+          Note:
+            Perhaps you have specialty combinations that share similar names, `combo1` and `combo2`.  These names don’t tell you much about what kind of information they actually have–simply that they’re combos, so when you export them you want them to have a more useful name.
+        </section>
+        <section data-markdown>
+          Naturally, the same goes for `import`s.
+
+          ```javascript
+          // index.js
+          import { plain as myPizza,
+                   meatLovers as ew } from './libs/toppings';
+          import { Pizza } from './libs/pizza';
+
+          let pizza1 = new Pizza(myPizza),
+              pizza2 = new Pizza(ew);
+          ```
+        </section>
+        <section data-markdown>
+          You can also `import` as an object
+
+          ```javascript
+          // index.js
+          import * as toppings from './libs/toppings';
+
+          let plain = new Pizza(toppings.plain);
+          ```
+        </section>
+        <section data-markdown>
+          But what about `default`?
+        </section>
+        <section data-markdown>
+          CommonJS and AMD modules can only export once.
+
+          Note:
+            ES2015 modules see CommonJS and AMD modules as having one "default" export.
+        </section>
+        <section data-markdown>
+          ```javascript
+          import _ from 'lodash';
+          // equivalent to var _ = require('lodash');
+          ```
+        </section>
+        <section data-markdown>
+          ```javascript
+          // log.js
+          export default console.log.bind(console)
+          // equivalent to module.exports = console.log.bind(console);
+          ```
+
+          Note:
+            You can export defaults, too.
+        </section>
+        <section data-markdown>
+          Re-exporting modules
+
+          ```javascript
+          export { default as plain } from "./pizzas/plain";
+          export { default as pepperoni } from "./pizzas/pepperoni";
+          export { default as pineappleAndFeta } from "./pizzas/pineappleAndFeta";
+          export { default as meatLovers } from "./pizzas/meatLovers";
+          ```
+
+          Note:
+            You can re-export modules.
+        </section>
+      </section>
+      <section>
+        <section data-markdown>
+          # Rules for implementation
+
+          Top-level only.
+
+          ```javascript
+          // this will fail
+          const date = new Date();
+
+          if (date.getDay() === 3) {
+            // if it's wednesday, get a plain pizza
+            import { plain } from './all';
+          }
+          ```
+        </section>
+        <section data-markdown>
+          An implementation must load all imported modules recursively.
+
+          Note:
+            This is the part that is holding up standardization.
+            Waiting for HTTP2?
+        </section>
+        <section data-markdown>
+          Linking
+
+          ```
+          // all.js
+          export { default as plain } from "./pizzas/plain";
+          export { default as pepperoni } from "./pizzas/pepperoni";
+          export { default as pineappleAndFeta } from "./pizzas/pineappleAndFeta";
+          export { default as meatLovers } from "./pizzas/meatLovers";
+
+          // index.js
+          import { bbq } from './libs/all.js'; // this will fail
+          ```
+
+          Note:
+            You can't import something that's not being exported.
+        </section>
+      </section>
+      <section>
+        <section data-markdown>
+          # Using ES2015 Modules Today
+          Standards are still being worked on for browser implemenations.
+
+          ```html
+          &lt;script type="module"&gt;
+          export default class Pizza {
+            constructor(toppings) {
+              this.toppings = toppings;
+            }
+          }
+          &lt;/script&gt;
+          ```
+        </section>
+        <section data-markdown>
+          # Transpilers &amp; Bundlers
+          - Babel
+          - Rollup
+        </section>
+        <section data-markdown>
+          # Using Rollup
+          - Simple command interface
+          - Plugins for using npm, Babel
+          - Simple configuration
+        </section>
+        <section data-markdown>
+          ```javascript
+          import babel from 'rollup-plugin-babel';
+          import npm from 'rollup-plugin-npm';
+
+          export default {
+            entry: 'index.js',
+            plugins: [
+              babel({
+                "presets": ["es2015-rollup"]
+              }),
+              npm({
+                jsnext: true,
+                main: true
+              })
+            ]
+          };
+          ```
+        </section>
+        <section data-markdown>
+          ```javascript
+          // pizza.js
+          import dr from 'lodash-es/array/dropRight';
+          import last from 'lodash-es/array/last';
+
+          export class Pizza {
+            constructor(toppings) {
+              this.toppings = toppings;
+            }
+
+            eat() {
+              const toppings = this.toppings,
+                length = this.length,
+                str = length < 2
+                  ? `${toppings.toString()}`
+                  : length > 2
+                  ? `${dr(toppings, 1).join(', ')}, and ${last(toppings)}`
+                  : `${toppings.join(' and ')}`;
+
+              return `\ndang, that pizza with the ${str} is good af`;
+            }
+          }
+        ```
+        </section>
+        <section data-markdown>
+          ```javascript
+          // index.js
+
+          import { pineappleAndFeta as pizza } from './libs/all';
+          import log from './libs/log';
+
+          log(pizza.eat());
+        ```
+        </section>
+        <section data-markdown>
+          ```bash
+          $ rollup -c | node
+
+          Treating 'rollup-plugin-babel' as external dependency
+          Treating 'rollup-plugin-npm' as external dependency
+
+          dang, that pizza with the pineapple and feta is good af
+          ```
+        </section>
+        <section data-markdown>
+          # "Tree-shaking"
+          Rollup only imports what you need.
+
+          ```javascript
+          // pizza.js
+          export class Pizza {
+            constructor(toppings) {
+              this.toppings = toppings;
+            }
+          }
+
+          export class ChicagoStyle {
+            constructor(horror) {
+              this.horror = horror;
+            }
+          }
+          ```
+        </section>
+        <section data-markdown>
+          ```javascript
+          // index.js
+          import { Pizza } from './pizza.js';
+          console.log(Pizza(['veggies', 'more veggies']));
+
+          // bundle.js
+          class Pizza {
+            constructor(toppings) {
+              this.toppings = toppings;
+            }
+          }
+          console.log( Pizza( ['veggies', 'more veggies'] ) ); // 125
+          ```
+        </section>
+      </section>
+      <section data-markdown>
+        # Wrapping up
+        ES2015 modules introduce an exciting new feature to the language.
+      </section>
+      <section data-markdown>
+        <script type="text/template">
+        Can't take full advantage of modules if they're not written as ES2015 modules.
+
+        Libraries like lodash already have ES2015 implementations. <!-- .element: class="fragment" data-fragment-index="0" -->
+
+        ```json
+        {
+          "name": "pizza",
+          "version": "9.0.0",
+          "main": "dist/pizza.js",
+          "jsnext:main": "dist/future-pizza.js"
+        }
+        ```
+        <!-- .element: class="fragment" data-fragment-index="1" -->
+        Note:
+          "jsnext:main is like main, but points to the es6 implementation"
+        </script>
+      </section>
+      <section>
+        <section data-markdown>
+          # Further reading
+          - "[ES6 In Depth: Modules](https://hacks.mozilla.org/2015/08/es6-in-depth-modules/)," by Jason Orendorff
+          - "[ECMAScript 6 modules: the final syntax](http://www.2ality.com/2014/09/es6-modules-final.html)," by Axel Rauschmayer
+          - "[The struggles of publishing a JavaScript library](http://nolanlawson.com/2015/10/19/the-struggles-of-publishing-a-javascript-library/)," by Nolan Lawson
+        </section>
+        <section data-markdown>
+          # Resources
+          - [Rollup](http://rollupjs.org/)
+          - [Babel](https://babeljs.io/)
+        </section>
+        <section data-markdown>
+          ```javascript
+          export { slides } from './aaron-petcoff';
+          // http://ughitsaaron.github.io/slides-manhattanjs-dec-2015
+          // http://aaronpetcoff.me/talks
+          ```
+        </section>
+        <section data-markdown>
+          ```bash
+          $ git clone https://github.com/ughitsaaron/getting-started-es6-modules.git
+          ```
+        </section>
+      </section>
+    </div>
+  </div>
+  <script src="vendor/headjs/dist/1.0.0/head.min.js"></script>
+  <script src="vendor/reveal.js/js/reveal.js"></script>
+  <script>
+    Reveal.initialize({
+      controls: true,
+      progress: false,
+      history: true,
+      center: true,
+
+      transition: Reveal.getQueryHash().transition || 'slide', // default/cube/page/concave/zoom/linear/fade/none
+
+      transitionSpeed: 'fast',
+
+      theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+
+      dependencies: [{
+        src: 'vendor/reveal.js/lib/js/classList.js',
+        condition: function () {
+          return !document.body.classList;
+        }
+      }, {
+        src: 'vendor/reveal.js/plugin/markdown/marked.js',
+        condition: function () {
+          return !!document.querySelector('[data-markdown]');
+        }
+      }, {
+        src: 'vendor/reveal.js/plugin/markdown/markdown.js',
+        condition: function () {
+          return !!document.querySelector('[data-markdown]');
+        }
+      }, {
+        src: 'vendor/reveal.js/plugin/highlight/highlight.js',
+        async: true,
+        callback: function () {
+          hljs.initHighlightingOnLoad();
+        }
+      }, {
+        src: 'vendor/reveal.js/plugin/zoom-js/zoom.js',
+        async: true,
+        condition: function () {
+          return !!document.body.classList;
+        }
+      }, {
+        src: 'vendor/reveal.js/plugin/notes/notes.js',
+        async: true
+      }]
+    });
+  </script>
+</body>
+</html>
